@@ -9,26 +9,32 @@ from youtube_transcript_api import (
 
 st.title("Check Proxy!")
 
-proxy = st.text_input('Type proxy')
+proxy = st.text_input('Type proxy', value="socks5h://djusbdqr:m3304yzgdib9@45.127.248.127:5128")
+
 video_id = st.text_input('Type URL')
 
 texts = []
 
 if st.button('Check availability'):
-    try:
-        if video_id is None:
-            st.write('Invalid URL')
-            exit()
+    if video_id is None:
+        raise InvalidVideoId('Invalid video ID')
+        exit()
 
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, proxies={"http": proxy})
-        for lang in ['en', 'pt', 'es', 'it', 'fr']:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, proxies={"http": proxy})
+    for lang in ['en', 'pt', 'es', 'it', 'fr']:
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=[lang], proxies={"http": proxy})
             text = '\n'.join([t['text'] for t in transcript])
             result = {'text': text, 'language': lang}
             texts.append(result)
-    except:
-        pass
+            if transcript:
+                break
 
+        except NoTranscriptFound:
+            pass
+        
+        except TranscriptsDisabled as ex:
+            raise TranscriptsDisabled('Transcripts are disabled for this video.')
+    
     if transcript is None:
         st.write('No transcript found for this video in Portuguese, English, Spanish, Italian or French.')
 
