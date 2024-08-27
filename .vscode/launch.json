@@ -1,0 +1,26 @@
+{
+    // Use o IntelliSense para saber mais sobre os atributos possíveis.
+    // Focalizar para exibir as descrições dos atributos existentes.
+    // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Streamlit",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "env": {
+                "STREAMLIT_APP": "streamlit_app.py",
+                "STREAMLIT_ENV": "dev",
+                "PYTHONPATH": "${workspaceRoot}/src/app",
+            },
+            "cwd": "${workspaceRoot}/",
+            "args": [
+                "run",
+                "streamlit_app.py",
+                "http://127.0.0.1:8000/"
+            ],
+            "jinja": true
+        }
+    ]
+}
