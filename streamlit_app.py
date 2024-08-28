@@ -1,41 +1,36 @@
+import requests
 import streamlit as st
 
-from youtube_transcript_api import (
-    TranscriptsDisabled, 
-    YouTubeTranscriptApi,
-    InvalidVideoId,
-    NoTranscriptFound
-)
+from src.app.utils.yt import get_youtube_video_id
 
 st.title("Check Proxy!")
 
-proxy = st.text_input('Type proxy', value="socks5h://djusbdqr:m3304yzgdib9@45.127.248.127:5128")
+video_url = st.text_input('Type URL')
 
-video_id = st.text_input('Type URL')
-
-texts = []
+video_id = get_youtube_video_id(video_url)
+print(video_id)
 
 if st.button('Check availability'):
-    if video_id is None:
-        raise InvalidVideoId('Invalid video ID')
-        exit()
+    # access the API
+    url = "https://youtube-media-downloader.p.rapidapi.com/v2/video/details"
+    headers = {
+        'x-rapidapi-host': "youtube-media-downloader.p.rapidapi.com",
+        'x-rapidapi-key': "076266eb35msh8e4d582226372b0p195f86jsn3007f30df660"
+    }
+    # send a get request to the API 
+    qs_video_id = {"videoId": video_id}
+    response = requests.request("GET", url, headers=headers, params=qs_video_id)
+    # conver the response to json format
+    json_response = response.json()
+    # obtain the subtitle url (in XML format)
+    subtitleURL = json_response['subtitles']['items'][0]['url']
 
-    for lang in ['en', 'pt', 'es', 'it', 'fr']:
-        try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=[lang], proxies={"http": proxy})
-            text = '\n'.join([t['text'] for t in transcript])
-            result = {'text': text, 'language': lang}
-            texts.append(result)
-            if transcript:
-                break
-
-        except NoTranscriptFound:
-            pass
-        
-        except TranscriptsDisabled as ex:
-            raise TranscriptsDisabled('Transcripts are disabled for this video.')
+    url_subtitle = "https://youtube-media-downloader.p.rapidapi.com/v2/video/subtitles"
+    # send a get subtitle text request to the API 
+    qs_subtitle = {"subtitleUrl": subtitleURL}
+    response = requests.request("GET", url_subtitle, headers=headers, params=qs_subtitle)
+    # return the text response
+    txt = response.text
+    print(txt)
     
-    if transcript is None:
-        st.write('No transcript found for this video in Portuguese, English, Spanish, Italian or French.')
-
-    st.write(len(texts))
+    st.text_area(txt)
